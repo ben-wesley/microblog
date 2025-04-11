@@ -13,11 +13,15 @@
   <h1>the microblog of benj. wesley</h1>
   <hr>
   <div id="posts">Loading posts...</div>
+  <button id="load-more">Load More</button>
 
   <script>
     const username = 'ben-wesley';
     const repo = 'microblog';
     const folder = 'posts';
+
+    let currentPage = 0;
+    const postsPerPage = 30;
 
     async function fetchPostsList() {
       const apiUrl = `https://api.github.com/repos/${username}/${repo}/contents/${folder}`;
@@ -30,10 +34,15 @@
 
     async function loadPosts() {
       const postList = document.getElementById('posts');
-      postList.innerHTML = '';
+      const loadMoreButton = document.getElementById('load-more');
+      // postList.innerHTML = '';
       const posts = await fetchPostsList();
 
-      for (const post of posts) {
+      const start = currentPage * postsPerPage;
+      const end = start + postsPerPage;
+      const postsToLoad = posts.slice(start, end);
+
+      for (const post of postsToLoad) {
         const res = await fetch(post.download_url);
         const text = await res.text();
         const html = marked.parse(text);
@@ -41,13 +50,22 @@
         article.innerHTML = html;
         postList.appendChild(article);
       }
+
+      currentPage++;
+      if (currentPage * postsPerPage >= posts.length) {
+        loadMoreButton.disabled = true;
+      }
     }
 
     // Load Marked.js for Markdown rendering
     const script = document.createElement('script');
     script.src = 'https://cdn.jsdelivr.net/npm/marked/marked.min.js';
-    script.onload = loadPosts;
+    script.onload = () => {
+      loadPosts();
+    };
     document.body.appendChild(script);
+
+    document.getElementById('load-more').addEventListener('click', loadPosts);
   </script>
 </body>
 </html>
