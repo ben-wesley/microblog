@@ -28,8 +28,19 @@ async function loadPage(page) {
     const html = marked.parse(text);
     const article = document.createElement('article');
 
-    const dateMatch = text.match(/<small>Posted on (.+?)<\/small>/);
-    const postedOn = dateMatch ? dateMatch[1] : '';
+    const filenameDate = post.name.split('-').slice(0, 3).join('-') + ' ' + post.name.split('-').slice(3, 4)[0];
+const parsedDate = new Date(
+  filenameDate.replace(/(\d{4})-(\d{2})-(\d{2}) (\d{4})/,
+  (_, y, m, d, hm) => `${y}-${m}-${d}T${hm.slice(0, 2)}:${hm.slice(2)}:00`)
+);
+const postedOn = parsedDate.toLocaleString('en-US', {
+  month: 'long',
+  day: '2-digit',
+  year: 'numeric',
+  hour: '2-digit',
+  minute: '2-digit',
+  hour12: true
+});
 
     const previewLimit = 300;
     if (text.length > previewLimit) {
