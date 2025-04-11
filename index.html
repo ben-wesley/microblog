@@ -30,79 +30,76 @@ button:hover {
   <div id="pagination" style="text-align: center; margin-top: 1em;"></div>
 
   <script>
-    const username = 'ben-wesley';
-    const repo = 'microblog';
-    const folder = 'posts';
+  const username = 'ben-wesley';
+  const repo = 'microblog';
+  const folder = 'posts';
+  const postsPerPage = 30;
+  let currentPage = 0;
+  let allPosts = [];
 
-    let currentPage = 0;
-    let allPosts = []
-    const postsPerPage = 30;
+  async function fetchPostsList() {
+    const apiUrl = `https://api.github.com/repos/${username}/${repo}/contents/${folder}`;
+    const res = await fetch(apiUrl);
+    const files = await res.json();
+    return files
+      .filter(file => file.name.endsWith('.md'))
+      .sort((a, b) => b.name.localeCompare(a.name)); // newest first
+  }
 
-    async function fetchPostsList() {
-      const apiUrl = `https://api.github.com/repos/${username}/${repo}/contents/${folder}`;
-      const res = await fetch(apiUrl);
-      const files = await res.json();
-      return files
-        .filter(file => file.name.endsWith('.md'))
-        .sort((a, b) => b.name.localeCompare(a.name)); // newest first
+  async function loadPage(page) {
+    const postList = document.getElementById('posts');
+    postList.innerHTML = '';
+
+    const start = page * postsPerPage;
+    const end = start + postsPerPage;
+    const pagePosts = allPosts.slice(start, end);
+
+    for (const post of pagePosts) {
+      const res = await fetch(post.download_url);
+      const text = await res.text();
+      const html = marked.parse(text);
+      const article = document.createElement('article');
+      article.innerHTML = html;
+      postList.appendChild(article);
     }
 
-    async function loadPosts() {
-      const postList = document.getElementById('posts');
-      // const loadMoreButton = document.getElementById('load-more');
-      postList.innerHTML = '';
-      // const posts = await fetchPostsList();
+    updatePaginationControls();
+  }
 
-      const start = currentPage * postsPerPage;
-      const end = start + postsPerPage;
-      const pagePosts = allPosts.slice(start, end);
+  function updatePaginationControls() {
+    const nav = document.getElementById('pagination');
+    nav.innerHTML = '';
 
-      for (const post of pagePosts) {
-        const res = await fetch(post.download_url);
-        const text = await res.text();
-        const html = marked.parse(text);
-        const article = document.createElement('article');
-        article.innerHTML = html;
-        postList.appendChild(article);
-      }
+    if (currentPage > 0) {
+      const newer = document.createElement('button');
+      newer.textContent = '← Newer';
+      newer.onclick = () => {
+        currentPage--;
+        loadPage(currentPage);
+      };
+      nav.appendChild(newer);
+    }
 
-      updatePaginationControls();
+    if ((currentPage + 1) * postsPerPage < allPosts.length) {
+      const older = document.createElement('button');
+      older.textContent = 'Older →';
+      older.onclick = () => {
+        currentPage++;
+        loadPage(currentPage);
+      };
+      nav.appendChild(older);
+    }
+  }
 
-      function updatePaginationControls() {
-        const nav = document.getElementById('pagination');
-        nav.innerHTML = '';
+  // Load Marked.js and start everything
+  const script = document.createElement('script');
+  script.src = 'https://cdn.jsdelivr.net/npm/marked/marked.min.js';
+  script.onload = async () => {
+    allPosts = await fetchPostsList();
+    loadPage(currentPage);
+  };
+  document.body.appendChild(script);
+</script>
 
-        if (currentPage > 0) {
-          const newer = document.createElement('button');
-          newer.textContent = '← Newer';
-          newer.onclick = () => {
-            currentPage--;
-            loadPage(currentPage);
-          };
-          nav.appendChild(newer);
-        }
-
-        if ((currentPage + 1) * postsPerPage < allPosts.length) {
-          const older = document.createElement('button');
-          older.textContent = 'Older →';
-          older.onclick = () => {
-            currentPage++;
-            loadPage(currentPage);
-          };
-          nav.appendChild(older);
-        }
-      }
-
-    // Load Marked.js for Markdown rendering
-    const script = document.createElement('script');
-    script.src = 'https://cdn.jsdelivr.net/npm/marked/marked.min.js';
-    script.onload = async () => {
-      allPosts = await fetchPostsList();
-      loadPage(currentPage);
-    };
-      
-    document.body.appendChild(script);
-
-  </script>
 </body>
 </html>
