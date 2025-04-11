@@ -8,13 +8,26 @@
     article { margin-bottom: 1em; border-bottom: 1px solid #ddd; padding-bottom: 0.5em; }
     h1 { font-size: 1.4em; }
     img { max-width: 100%; height: auto; }
+    button {
+      background: #eee;
+      border: none;
+      padding: 0.5em 1em;
+      margin: 0.5em;
+      cursor: pointer;
+      font-size: 1em;
+      border-radius: 5px;
+    }
+button:hover {
+  background: #ddd;
+}
+
   </style>
 </head>
 <body>
   <h1>the microblog of benj. wesley</h1>
   <hr>
   <div id="posts">Loading posts...</div>
-  <button id="load-more">Load More</button>
+  <div id="pagination" style="text-align: center; margin-top: 1em;"></div>
 
   <script>
     const username = 'ben-wesley';
@@ -22,6 +35,7 @@
     const folder = 'posts';
 
     let currentPage = 0;
+    let allPosts = []
     const postsPerPage = 30;
 
     async function fetchPostsList() {
@@ -35,15 +49,15 @@
 
     async function loadPosts() {
       const postList = document.getElementById('posts');
-      const loadMoreButton = document.getElementById('load-more');
+      // const loadMoreButton = document.getElementById('load-more');
       postList.innerHTML = '';
-      const posts = await fetchPostsList();
+      // const posts = await fetchPostsList();
 
       const start = currentPage * postsPerPage;
       const end = start + postsPerPage;
-      const postsToLoad = posts.slice(start, end);
+      const pagePosts = allPosts.slice(start, end);
 
-      for (const post of postsToLoad) {
+      for (const post of pagePosts) {
         const res = await fetch(post.download_url);
         const text = await res.text();
         const html = marked.parse(text);
@@ -52,21 +66,43 @@
         postList.appendChild(article);
       }
 
-      currentPage++;
-      if (currentPage * postsPerPage >= posts.length) {
-        loadMoreButton.disabled = true;
+      updatePaginationControls();
+
+      function updatePaginationControls() {
+        const nav = document.getElementById('pagination');
+        nav.innerHTML = '';
+
+        if (currentPage > 0) {
+          const newer = document.createElement('button');
+          newer.textContent = '← Newer';
+          newer.onclick = () => {
+            currentPage--;
+            loadPage(currentPage);
+          };
+          nav.appendChild(newer);
+        }
+
+        if ((currentPage + 1) * postsPerPage < allPosts.length) {
+          const older = document.createElement('button');
+          older.textContent = 'Older →';
+          older.onclick = () => {
+            currentPage++;
+            loadPage(currentPage);
+          };
+          nav.appendChild(older);
+        }
       }
-    }
 
     // Load Marked.js for Markdown rendering
     const script = document.createElement('script');
     script.src = 'https://cdn.jsdelivr.net/npm/marked/marked.min.js';
-    script.onload = () => {
-      loadPosts();
+    script.onload = async () => {
+      allPosts = await fetchPostsList();
+      loadPage(currentPage);
     };
+      
     document.body.appendChild(script);
 
-    document.getElementById('load-more').addEventListener('click', loadPosts);
   </script>
 </body>
 </html>
