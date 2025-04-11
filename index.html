@@ -35,7 +35,7 @@
     async function loadPosts() {
       const postList = document.getElementById('posts');
       const loadMoreButton = document.getElementById('load-more');
-      // postList.innerHTML = '';
+      postList.innerHTML = '';
       const posts = await fetchPostsList();
 
       const start = currentPage * postsPerPage;
