@@ -18,10 +18,20 @@
       font-size: 1em;
       border-radius: 5px;
     }
-button:hover {
-  background: #ddd;
-}
+button:hover {  background: #ddd; }
+.read-more {
+    background: #eee;
+    border: none;
+    padding: 0.4em 0.8em;
+    margin-top: 0.5em;
+    cursor: pointer;
+    border-radius: 5px;
+    font-size: 0.9em;
+  }
 
+  .read-more:hover {
+    background: #ddd;
+  }
   </style>
 </head>
 <body>
@@ -59,10 +69,33 @@ button:hover {
       const res = await fetch(post.download_url);
       const text = await res.text();
       const html = marked.parse(text);
+      
       const article = document.createElement('article');
-      article.innerHTML = html;
+    
+      const previewLimit = 20; // You can tweak this — chars or use line/paragraph logic
+      if (text.length > previewLimit) {
+        const previewText = text.slice(0, previewLimit);
+        const previewHTML = marked.parse(previewText + '...');
+        const fullHTML = html;
+    
+        article.innerHTML = `
+          <div class="preview">${previewHTML}</div>
+          <div class="full-content" style="display: none;">${fullHTML}</div>
+          <button class="read-more">Read more</button>
+        `;
+    
+        article.querySelector('.read-more').addEventListener('click', function () {
+          article.querySelector('.preview').style.display = 'none';
+          article.querySelector('.full-content').style.display = 'block';
+          this.style.display = 'none'; // hide the button after expanding
+        });
+      } else {
+        article.innerHTML = html; // if it's short, show full content
+      }
+    
       postList.appendChild(article);
-    }
+}
+
 
     updatePaginationControls();
   }
