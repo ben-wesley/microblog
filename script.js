@@ -11,7 +11,7 @@ async function fetchPostsList() {
   const res = await fetch(apiUrl);
   const files = await res.json();
   return files
-    .filter(file => file.name.endsWith('.md'))
+    .filter(file => file.name.endsWith('.html'))
     .sort((a, b) => b.name.localeCompare(a.name)); // newest first
 }
 
@@ -25,7 +25,8 @@ async function loadPage(page) {
   for (const post of pagePosts) {
     const res = await fetch(post.download_url);
     const text = await res.text();
-    const html = marked.parse(text);
+    // const html = marked.parse(text);
+    const html = text;
     const article = document.createElement('article');
 
     const filenameDate = post.name.split('-').slice(0, 3).join('-') + ' ' + post.name.split('-').slice(3, 4)[0];
@@ -45,7 +46,8 @@ const postedOn = parsedDate.toLocaleString('en-US', {
     const previewLimit = 300;
     if (text.length > previewLimit) {
       const previewText = text.slice(0, previewLimit);
-      const previewHTML = marked.parse(previewText + '...');
+      // const previewHTML = marked.parse(previewText + '...');
+      const previewHTML = previewText + '...';
 
       article.innerHTML = `
         <div class="preview">${previewHTML}</div>
