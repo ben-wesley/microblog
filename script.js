@@ -53,7 +53,11 @@ const postedOn = parsedDate.toLocaleString('en-US', {
         <div class="preview">${previewHTML}</div>
         <div class="full-content" style="display: none;">${html}</div>
         <button class="read-more">Read more</button>
-        <div class="post-date"><small>Posted on ${postedOn}</small></div>
+        <div class="post-date">
+          <small>
+            <a href="${post.path}" class="posted-link">Posted on ${postedOn}</a>
+          </small>
+        </div>
       `;
 
       article.querySelector('.read-more').addEventListener('click', function () {
