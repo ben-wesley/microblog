@@ -62,7 +62,7 @@ for (const post of pagePosts) {
       this.style.display = 'none';
     });
   } else {
-    article.innerHTML = `${html}<div class="post-date"><small><a href="/${post.name}" class="posted-link">Posted on ${postedOn}</a></small></div>`;
+    article.innerHTML = `${html}<div class="post-date"><small><a href="/posts/${post.name}" class="posted-link">Posted on ${postedOn}</a></small></div>`;
   }
 
   // 🔧 COMMENT DISPLAY
